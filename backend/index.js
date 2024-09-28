@@ -1,11 +1,29 @@
-const sequelize = require('./database'); 
-const User = require('./models/User');
+const express = require('express');
+const bodyParser = require('body-parser');
+const sequelize = require('./database');
+const userRoutes = require('./routes/userRoutes');
 
-async function initialize() {
-    await sequelize.authenticate();
-    console.log('Connection has been established successfully.');
+const app = express();
 
-    await User.sync();
-}
+// Middleware
+app.use(bodyParser.json());
 
-initialize();
+// Routes
+app.use('/api/users', userRoutes);
+
+sequelize.authenticate()
+    .then(() => {
+        console.log('Database connected...');
+        return sequelize.sync();
+    })
+    .then(() => {
+        console.log('Tables synced...');
+    })
+    .catch(err => {
+        console.log('Error: ' + err);
+    });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});

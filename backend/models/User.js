@@ -1,29 +1,27 @@
-const {DataTypes} = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../database');
+const bcrypt = require('bcryptjs');
 
-const User = sequelize.define('user', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-    },
-    name: {
+const User = sequelize.define('User', {
+    username: {
         type: DataTypes.STRING,
         allowNull: false,
+        unique: true,
     },
     email: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
+    },
+    password: {
+        type: DataTypes.STRING,
+        allowNull: false,
     }
 });
 
-User.sync()
-.then(() => {
-    console.log('User table created successfully');
-})
-.catch((error) => {
-    console.error('Unable to create table : ', error);
+User.beforeCreate(async (user, options) => {
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
 });
 
 module.exports = User;

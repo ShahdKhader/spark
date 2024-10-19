@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:untitled/screens/signin_screen.dart';
 import 'package:untitled/widgets/custom_scaffold.dart';
-import 'package:icons_plus/icons_plus.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert'; // For JSON encoding and decoding
 
 import '../theme/theme.dart';
 import 'MainScreen.dart';
-import 'home_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -17,6 +17,59 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formSignupKey = GlobalKey<FormState>();
   bool agreePersonalData = true;
+
+  // Text editing controllers for capturing form data
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  // Function to send the POST request to the API
+  Future<void> registerUser() async {
+    final String apiUrl = "http://10.0.2.2:3000/api/users/register"; // API URL for registration
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({
+          "username": _nameController.text, // Username from the form
+          "email": _emailController.text,   // Email from the form
+          "password": _passwordController.text, // Password from the form
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        // Registration successful, navigate to MainScreen
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration successful')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) =>  MainScreen()),
+        );
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration failed')),
+        );
+      }
+    } catch (e) {
+      // Handle errors such as API not being reachable
+      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An error occurred')),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controllers when the widget is disposed
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomScaffold(
@@ -40,13 +93,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
               child: SingleChildScrollView(
-                // get started form
                 child: Form(
                   key: _formSignupKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // get started text
+                      // Get Started Text
                       Text(
                         'Get Started',
                         style: TextStyle(
@@ -55,11 +107,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           color: lightColorScheme.primary,
                         ),
                       ),
-                      const SizedBox(
-                        height: 40.0,
-                      ),
-                      // full name
+                      const SizedBox(height: 40.0),
+
+                      // Full Name TextField
                       TextFormField(
+                        controller: _nameController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter Full name';
@@ -69,28 +121,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Full Name'),
                           hintText: 'Enter Full Name',
-                          hintStyle: const TextStyle(
-                            color: Colors.black26,
-                          ),
+                          hintStyle: const TextStyle(color: Colors.black26),
                           border: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
+                            borderSide: const BorderSide(color: Colors.black12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
-                      // email
+                      const SizedBox(height: 25.0),
+
+                      // Email TextField
                       TextFormField(
+                        controller: _emailController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter Email';
@@ -100,82 +142,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Email'),
                           hintText: 'Enter Email',
-                          hintStyle: const TextStyle(
-                            color: Colors.black26,
-                          ),
+                          hintStyle: const TextStyle(color: Colors.black26),
                           border: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
+                            borderSide: const BorderSide(color: Colors.black12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
-                      // university dropdown field
-                      DropdownButtonFormField<String>(
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please select a University';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          label: const Text('University'),
-                          hintText: 'Select University',
-                          hintStyle: const TextStyle(
-                            color: Colors.black26,
-                          ),
-                          border: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'An-Najah University',
-                            child: Text('An-Najah University'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Birzeit University',
-                            child: Text('Birzeit University'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Palestine Technical University',
-                            child: Text('Palestine Technical University'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Arab American University',
-                            child: Text('Arab American University'),
-                          ),
-                        ],
-                        onChanged: (String? newValue) {
-                          // Update your state here if necessary
-                        },
-                      ),
+                      const SizedBox(height: 25.0),
 
-                      const SizedBox(
-                        height: 25.0,
-                      ),
-
-                      // password
+                      // Password TextField
                       TextFormField(
+                        controller: _passwordController,
                         obscureText: true,
                         obscuringCharacter: '*',
                         validator: (value) {
@@ -187,27 +165,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         decoration: InputDecoration(
                           label: const Text('Password'),
                           hintText: 'Enter Password',
-                          hintStyle: const TextStyle(
-                            color: Colors.black26,
-                          ),
+                          hintStyle: const TextStyle(color: Colors.black26),
                           border: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
+                            borderSide: const BorderSide(color: Colors.black12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
-                      // i agree to the processing
+                      const SizedBox(height: 25.0),
+
+                      // I agree to the processing checkbox
                       Row(
                         children: [
                           Checkbox(
@@ -221,9 +188,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                           const Text(
                             'I agree to the processing of ',
-                            style: TextStyle(
-                              color: Colors.black45,
-                            ),
+                            style: TextStyle(color: Colors.black45),
                           ),
                           Text(
                             'Personal data',
@@ -234,27 +199,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
-                      // signup button
+                      const SizedBox(height: 25.0),
+
+                      // Sign up button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
                             if (_formSignupKey.currentState!.validate() &&
                                 agreePersonalData) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Processing Data'),
-                                ),
-                              );
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MainScreen(), // Navigate to MainScreen
-                                ),
-                              );
+                              // Call the API to register the user
+                              registerUser();
                             } else if (!agreePersonalData) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -266,10 +221,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           child: const Text('Sign up'),
                         ),
                       ),
-                      const SizedBox(
-                        height: 30.0,
-                      ),
-                      // sign up divider
+                      const SizedBox(height: 30.0),
+
+                      // Social Media Sign Up section (if needed)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -299,23 +253,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 30.0,
-                      ),
-                      // sign up social media logo
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Logo(Logos.facebook_f),
-                          Logo(Logos.twitter),
-                          Logo(Logos.google),
-                          Logo(Logos.apple),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
-                      // already have an account
+                      const SizedBox(height: 30.0),
+
+                      // Already have an account? Sign in
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -344,9 +284,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 20.0,
-                      ),
+                      const SizedBox(height: 20.0),
                     ],
                   ),
                 ),

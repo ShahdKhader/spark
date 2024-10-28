@@ -2,6 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const sequelize = require('./database');
 const userRoutes = require('./routes/userRoutes');
+const profileRouter = require('./routes/profileRoutes'); 
+require('dotenv').config();
 
 const app = express();
 
@@ -10,7 +12,9 @@ app.use(bodyParser.json());
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/profile', profileRouter); 
 
+// Database sync and server start
 sequelize.authenticate()
     .then(() => {
         console.log('Database connected...');

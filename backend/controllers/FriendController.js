@@ -114,4 +114,4 @@ exports.getFriends = async (req, res) => {
         console.error('Error fetching friends:', error);
         res.status(500).json({ message: 'Error fetching friends', error });
     }
-};
+};//tt
